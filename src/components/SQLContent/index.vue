@@ -1,6 +1,6 @@
 <template>
 	<div class="edit-code-editor" style="text-align: left;">
-    <textarea placeholder="按Ctrl键进行代码提示" ref="mycode" class="codesql" v-model="code" style="height:200px;width:auto;"></textarea>
+    <textarea ref="mycode" class="codesql" v-model="code" style="height:200px;width:auto;"></textarea>
   </div>
 </template>
 
@@ -20,7 +20,7 @@
 		name:'SQLContent',
 		data() {
 			return {
-        code: ''
+        code: '/* 按Ctrl键进行代码提示 */'
 			};
 		},
     mounted () {
@@ -56,8 +56,12 @@
 </script>
 
 <style>
+  body{
+    font-size: 18px;
+  }
+
   .codesql {
-    font-size: 18pt;
+    font-size: 18px;
     font-family: Consolas, Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace, serif;
   }
 </style>
