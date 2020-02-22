@@ -6,6 +6,7 @@
           <el-button type="primary" size="mini" icon="el-icon-document-add" @click="openSQL">打开</el-button>
           <el-button type="info" size="mini" icon="el-icon-video-play" @click="runSQL">运行</el-button>
           <el-button type="success" size="mini" icon="el-icon-download" @click="saveSQL">保存</el-button>
+          <el-button type="warning" size="mini" icon="el-icon-delete" @click="clearSQL">清空</el-button>
         </div>
       </el-col>
     </el-row>
@@ -78,6 +79,12 @@
           });
         });
       },
+      clearSQL() {
+        // 清空SQL脚本
+        global_varibles.editor.setValue('/* 按Ctrl键进行代码提示 */')
+        global_varibles.sqlCode = ''
+        this.code = ''
+      },
       download_SQL() {
         //定义文件内容，类型必须为Blob 否则createObjectURL会报错
         let content = new Blob([window.JSON.stringify(global_varibles.sqlCode)])
@@ -95,6 +102,7 @@
         //移除链接释放资源
         urlObject.revokeObjectURL(url)
         this.fileName = 'SQLscripts'
+        this.clearSQL()
       }
     },
     mounted () {
