@@ -79,7 +79,6 @@
         });
       },
       download_SQL() {
-        this.dialogVisible = false
         //定义文件内容，类型必须为Blob 否则createObjectURL会报错
         let content = new Blob([window.JSON.stringify(global_varibles.sqlCode)])
 
@@ -95,6 +94,7 @@
         el.click()
         //移除链接释放资源
         urlObject.revokeObjectURL(url)
+        this.fileName = 'SQLscripts'
       }
     },
     mounted () {
