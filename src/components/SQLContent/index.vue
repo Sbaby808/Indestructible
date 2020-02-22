@@ -1,6 +1,15 @@
 <template>
 	<div class="edit-code-editor" style="text-align: left;">
-    <textarea ref="mycode" class="codesql" v-model="code" style="height:200px;width:auto;"></textarea>
+    <el-row>
+      <el-col :span="24">
+        <div class="grid-content bg-purple-dark">
+          <el-button type="primary" size="mini" icon="el-icon-document-add" @click="openSQL">打开</el-button>
+          <el-button type="info" size="mini" icon="el-icon-video-play" @click="runSQL">运行</el-button>
+          <el-button type="success" size="mini" icon="el-icon-download" @click="saveSQL">保存</el-button>
+        </div>
+      </el-col>
+    </el-row>
+    <textarea ref="mycode" class="codesql" v-model="code" style="height:150px;width:auto;"></textarea>
   </div>
 </template>
 
@@ -20,9 +29,39 @@
 		name:'SQLContent',
 		data() {
 			return {
-        code: '/* 按Ctrl键进行代码提示 */'
+        code: '/* 按Ctrl键进行代码提示 */',
+        sqlFile:null,
 			};
 		},
+    methods: {
+      openSQL() {
+        var _this = this;
+        // 打开SQL脚本文件
+        this.sqlFile=document.createElement('input')
+        this.sqlFile.setAttribute('id','_ef');
+        this.sqlFile.setAttribute('type','file');
+        this.sqlFile.setAttribute("style",'visibility:hidden');
+        document.body.appendChild(this.sqlFile);
+        this.sqlFile.click();
+        this.sqlFile.value ;
+        this.sqlFile.addEventListener('change', function(e){
+          var reader = new FileReader();
+          reader.onload = function(e){
+            // console.log(e.target.result);
+            _this.code = e.target.result;
+            global_varibles.editor.setValue(_this.code);
+          };
+          reader.readAsText(e.target.files[0]);
+        });
+      },
+      runSQL() {
+        // TODO
+      },
+      saveSQL() {
+        // TODO
+        alert('openSQL')
+      }
+    },
     mounted () {
         debugger
         let mime = 'text/x-mariadb'
@@ -47,10 +86,12 @@
         // editor.on('cursorActivity', function () {
         //   editor.showHint()
         // })
+        editor.setSize(-1, 150);
         editor.on('change', function(){
           global_varibles.sqlCode = editor.getValue()
-          console.log(global_varibles.sqlCode)
-        })
+          // console.log(global_varibles.sqlCode)
+        });
+        global_varibles.editor = editor;
       }
 	}
 </script>
@@ -63,5 +104,25 @@
   .codesql {
     font-size: 18px;
     font-family: Consolas, Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace, serif;
+  }
+  .el-row {
+    margin-top: 2px;
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+  .bg-purple-dark {
+    background: #99a9bf;
+  }
+  .grid-content {
+    border-radius: 4px;
+    min-height: 36px;
+  }
+  .el-col {
+    border-radius: 4px;
+  }
+  .el-button {
+    margin-top: 4px;
+    margin-left: 8px;
   }
 </style>

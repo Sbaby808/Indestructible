@@ -1,7 +1,9 @@
 <script>
   const sqlCode = '';
+  const editor = null;
 
   export default {
-    sqlCode
+    sqlCode,
+    editor,
   }
 </script>
