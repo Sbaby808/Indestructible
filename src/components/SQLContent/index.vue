@@ -1,5 +1,5 @@
 <template>
-	<div class="edit-code-editor" style="text-align: left;">
+  <div class="edit-code-editor" style="text-align: left;">
     <el-row>
       <el-col :span="24">
         <div class="grid-content bg-purple-dark">
@@ -31,6 +31,7 @@
 			return {
         code: '/* 按Ctrl键进行代码提示 */',
         sqlFile:null,
+        fileName:'SQLscripts',
 			};
 		},
     methods: {
@@ -49,7 +50,7 @@
           reader.onload = function(e){
             // console.log(e.target.result);
             _this.code = e.target.result;
-            global_varibles.editor.setValue(_this.code);
+            global_varibles.editor.setValue(window.JSON.parse(_this.code));
           };
           reader.readAsText(e.target.files[0]);
         });
@@ -58,8 +59,42 @@
         // TODO
       },
       saveSQL() {
-        // TODO
-        alert('openSQL')
+        this.$prompt('请输入文件名', '保存SQL脚本到本地', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          inputPattern: /^(.)+$/,
+          inputErrorMessage: '文件名不能为空'
+        }).then(({ value }) => {
+          this.$message({
+            type: 'success',
+            message: '保存为: ' + value + '.sql'
+          });
+          this.fileName = value;
+          this.download_SQL();
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '取消输入'
+          });
+        });
+      },
+      download_SQL() {
+        this.dialogVisible = false
+        //定义文件内容，类型必须为Blob 否则createObjectURL会报错
+        let content = new Blob([window.JSON.stringify(global_varibles.sqlCode)])
+
+        //生成url对象
+        let urlObject = window.URL || window.webkitURL || window
+        let url = urlObject.createObjectURL(content)
+        //生成<a></a>DOM元素
+        let el = document.createElement('a')
+        //链接赋值
+        el.href = url
+        el.download = this.fileName + '.sql'
+        //必须点击否则不会下载
+        el.click()
+        //移除链接释放资源
+        urlObject.revokeObjectURL(url)
       }
     },
     mounted () {
@@ -113,6 +148,7 @@
   }
   .bg-purple-dark {
     background: #99a9bf;
+    /* background: #E9EEF3; */
   }
   .grid-content {
     border-radius: 4px;
