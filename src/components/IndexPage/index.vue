@@ -5,12 +5,14 @@
         <HeaderContent></HeaderContent>
       </el-header>
       <el-container>
-        <el-aside width="400px">Aside</el-aside>
+        <el-aside width="400px">
+          <DatabasesContent></DatabasesContent>
+        </el-aside>
         <el-container>
           <el-main style="padding: 0px;">
             <div id="v-content" v-bind:style="{minHeight: Height+'px'}">
               <el-container>
-                <el-header style="background-color: #E9EEF3;height: auto;">
+                <el-header style="background-color: #E9EEF3;height: auto;padding: 0;">
                   <SQLContent></SQLContent>
                 </el-header>
                 <el-main>
@@ -33,8 +35,14 @@
   import FooterContent from '../FooterContent/index'
   import SQLContent from '../SQLContent/index'
   import DataContent from '../DataContent/index'
+  import DatabasesContent from '../DatabasesContent/DatabasesContent'
 	export default {
-    components:{HeaderContent,FooterContent,SQLContent,DataContent},
+    components:{
+      HeaderContent,
+      FooterContent,
+      SQLContent,
+      DataContent,
+      DatabasesContent,},
 		name:'IndexPage',
 		data() {
 			return {
@@ -63,7 +71,7 @@
   }
 
   .el-aside {
-    background-color: #CCCCCC;
+    background-color: #FFFFFF;
     color: #333;
     text-align: center;
   }

@@ -3,10 +3,10 @@
     <el-row>
       <el-col :span="24">
         <div class="grid-content bg-purple-dark">
-          <el-button type="primary" size="mini" icon="el-icon-document-add" @click="openSQL">打开</el-button>
-          <el-button type="info" size="mini" icon="el-icon-video-play" @click="runSQL">运行</el-button>
-          <el-button type="success" size="mini" icon="el-icon-download" @click="saveSQL">保存</el-button>
-          <el-button type="warning" size="mini" icon="el-icon-delete" @click="clearSQL">清空</el-button>
+          <el-button type="primary" size="mini" icon="el-icon-document-add" @click="openSQL" plain>打开</el-button>
+          <el-button type="info" size="mini" icon="el-icon-video-play" @click="runSQL" plain>运行</el-button>
+          <el-button type="success" size="mini" icon="el-icon-download" @click="saveSQL" plain>保存</el-button>
+          <el-button type="warning" size="mini" icon="el-icon-delete" @click="clearSQL" plain>清空</el-button>
         </div>
       </el-col>
     </el-row>
