@@ -50,8 +50,18 @@
           var reader = new FileReader();
           reader.onload = function(e){
             // console.log(e.target.result);
-            _this.code = e.target.result;
-            global_varibles.editor.setValue(window.JSON.parse(_this.code));
+            // 检查是否是 SQL 文件
+            if(_this.sqlFile.files[0].name.endsWith('.sql')) {
+              _this.code = e.target.result;
+              global_varibles.editor.setValue(window.JSON.parse(_this.code));
+            } else {
+              _this.$message({
+                dangerouslyUseHTMLString: true,
+                message: '<span>您打开的不是 <strong>SQL</strong> 文件</span>',
+                type: 'warning'
+              });
+            }
+
           };
           reader.readAsText(e.target.files[0]);
         });
