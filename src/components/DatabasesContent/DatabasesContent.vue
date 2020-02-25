@@ -4,6 +4,7 @@
       <el-col :span="24">
         <div class="grid-content bg-purple-dark">
           <el-button type="primary" size="mini" icon="el-icon-plus" @click="newConnection" round>新建连接</el-button>
+          <el-button type="warning" size="mini" icon="el-icon-refresh" @click="refreshList" round>刷新列表</el-button>
         </div>
       </el-col>
     </el-row>
@@ -14,8 +15,9 @@
           :show="contextMenuVisible"
           @update:show="(show) => contextMenuVisible = show">
         <a href="javascript:;" @click="createDatabaseOrTable">新建{{this.menuLabel}}</a>
-        <a href="javascript:;" @click="deleteDatabaseOrable">删除{{this.menuLabel}}</a>
+        <a href="javascript:;" @click="deleteDatabaseOrTable">删除{{this.menuLabel}}</a>
         <a href="javascript:;" @click="attribute">属性</a>
+        <a href="javascript:;" @click="exportDatabaseOrTable">导出{{this.menuLabel}}</a>
       </context-menu>
     </div>
     <el-dialog title="新建数据库连接" :visible.sync="dialogVisible" :before-close="closeDialog" :destroy-on-close="true" :close-on-click-modal="false">
@@ -103,6 +105,10 @@
       newConnection() {
         this.dialogVisible = true;
       },
+      // 刷新数据库列表
+      refreshList() {
+
+      },
       // 测试数据库连接
       testConnection () {
         // TODO
@@ -125,13 +131,17 @@
         this.contextMenuVisible = false;
         console.log("create " + this.menuLabel);
       },
-      deleteDatabaseOrable() {
+      deleteDatabaseOrTable() {
         this.contextMenuVisible = false;
         console.log("delete " + this.menuLabel);
       },
       attribute() {
         this.contextMenuVisible = false;
         console.log("show attribute " + this.menuLabel);
+      },
+      exportDatabaseOrTable() {
+        this.contextMenuVisible = false;
+        console.log("export " + this.menuLabel);
       }
     },
     mounted() {
@@ -196,6 +206,7 @@
     user-select:none;
   }
   .right-menu {
+    font-size: 14px;
     position: fixed;
     background: #fff;
     border: solid 1px rgba(0, 0, 0, .2);
@@ -227,6 +238,6 @@
       padding: 2px;
   }
   .right-menu a:hover {
-      background: #42b983;
+      background: #99A9BF;
   }
 </style>
