@@ -7,6 +7,9 @@ import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
 Vue.use(ElementUI)
 
+import VueContextMenu from '@xunlei/vue-context-menu'
+Vue.use(VueContextMenu)
+
 Vue.config.productionTip = false
 
 /* eslint-disable no-new */

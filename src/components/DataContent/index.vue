@@ -1,17 +1,18 @@
 <template>
 	<div>
-    DataDataData
-	</div>
+  </div>
 </template>
 
 <script>
 	export default {
 		name:'DataContent',
 		data() {
-			return {
+      return {
 
-			};
-		}
+      }
+    },
+    methods: {
+    }
 	}
 </script>
 
