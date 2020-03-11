@@ -68,6 +68,7 @@
       },
       runSQL() {
         // TODO
+        alert("run sql scripts!");
       },
       saveSQL() {
         this.$prompt('请输入文件名', '保存SQL脚本到本地', {

@@ -17,22 +17,22 @@
         <a href="javascript:;" @click="createDatabaseOrTable">新建{{this.menuLabel}}</a>
         <a href="javascript:;" @click="deleteDatabaseOrTable">删除{{this.menuLabel}}</a>
         <a href="javascript:;" @click="attribute">属性</a>
-        <a href="javascript:;" @click="exportDatabaseOrTable">导出{{this.menuLabel}}</a>
+        <a href="javascript:;" @click="exdbPortDatabaseOrTable">导出{{this.menuLabel}}</a>
       </context-menu>
     </div>
     <el-dialog title="新建数据库连接" :visible.sync="dialogVisible" :before-close="closeDialog" :destroy-on-close="true" :close-on-click-modal="false">
-      <el-form :model="connectionForm" :rules="rules">
-        <el-form-item label="主机" :label-width="formLabelWidth" prop="url">
-          <el-input v-model="connectionForm.url" clearable placeholder="请输入主机地址,如:127.0.0.1" required></el-input>
+      <el-form :model="dbInfo" :rules="rules">
+        <el-form-item label="主机" :label-width="formLabelWidth" prop="dbIp">
+          <el-input v-model="dbInfo.dbIp" clearable placeholder="请输入主机地址,如:127.0.0.1" required></el-input>
         </el-form-item>
-        <el-form-item label="端口号" :label-width="formLabelWidth" prop="port">
-          <el-input v-model="connectionForm.port" clearable placeholder="请输入端口号,如:3306" required></el-input>
+        <el-form-item label="端口号" :label-width="formLabelWidth" prop="dbPort">
+          <el-input v-model="dbInfo.dbPort" clearable placeholder="请输入端口号,如:3306" required></el-input>
         </el-form-item>
-        <el-form-item label="用户名" :label-width="formLabelWidth" prop="username">
-          <el-input v-model="connectionForm.username" clearable placeholder="请输入用户名,如:root"></el-input>
+        <el-form-item label="用户名" :label-width="formLabelWidth" prop="dbUser">
+          <el-input v-model="dbInfo.dbUser" clearable placeholder="请输入用户名,如:root"></el-input>
         </el-form-item>
-        <el-form-item label="密码" :label-width="formLabelWidth" prop="password">
-          <el-input v-model="connectionForm.password" clearable placeholder="请输入密码,如:123456" show-password></el-input>
+        <el-form-item label="密码" :label-width="formLabelWidth" prop="dbPasswd">
+          <el-input v-model="dbInfo.dbPasswd" clearable placeholder="请输入密码,如:123456" show-password></el-input>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -44,28 +44,30 @@
 </template>
 
 <script>
+  import database_list from '../../api/database_list.js'
+  import global_varibles from '../global_varibles'
 	export default {
 		name:'DatabasesContent',
 		data() {
 			return {
         dialogVisible : false,
-        connectionForm:{
-          url:'',
-          port:'',
-          username:'',
-          password:''
+        dbInfo:{
+          dbIp:'',
+          dbPort:'',
+          dbUser:'',
+          dbPasswd:''
         },
         rules:{
-          url:[
+          dbIp:[
             { required: true, message: '请输入主机地址', trigger: 'blur' }
           ],
-          port:[
+          dbPort:[
             { required: true, message: '请输入端口号', trigger: 'blur' }
           ],
-          username:[
+          dbUser:[
             { required: true, message: '请输入用户名', trigger: 'blur' }
           ],
-          password:[
+          dbPasswd:[
             { required: true, message: '请输入密码', trigger: 'blur' }
           ]
         },
@@ -111,15 +113,31 @@
       },
       // 测试数据库连接
       testConnection () {
-        // TODO
+        database_list.test_conn(this.dbInfo)
+        .then(result => {
+          if(result.meta.success) {
+            global_varibles.testDataSource = result.meta.dataSource;
+            this.$message({
+              message: '连接成功！',
+              type: 'success'
+            })
+          } else {
+            this.$message({
+              message: result.meta.message,
+              type: 'warning'
+            });
+          }
+        }).catch(result => {
+          alert(result)
+        })
       },
       // 关闭Dialog前回调
       closeDialog() {
-        this.connectionForm = {
-          url:'',
-          port:'',
-          username:'',
-          password:''
+        this.dbInfo = {
+          dbIp:'',
+          dbPort:'',
+          dbUser:'',
+          dbPasswd:''
         };
         this.dialogVisible = false;
       },
@@ -139,9 +157,9 @@
         this.contextMenuVisible = false;
         console.log("show attribute " + this.menuLabel);
       },
-      exportDatabaseOrTable() {
+      exdbPortDatabaseOrTable() {
         this.contextMenuVisible = false;
-        console.log("export " + this.menuLabel);
+        console.log("exdbPort " + this.menuLabel);
       }
     },
     mounted() {
