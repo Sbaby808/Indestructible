@@ -37,7 +37,7 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="testConnection" type="warning" icon="el-icon-help" round>测试连接</el-button>
-        <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
+        <el-button type="primary" @click="confirmConnection">确 定</el-button>
       </div>
   </el-dialog>
 	</div>
@@ -75,27 +75,7 @@
         contextMenuTarget: null,
         contextMenuVisible: false,
         nodeData: {},
-        data: [{
-          label: '一级 1',
-          children: [{
-            label: '二级 1-1',
-            label: '二级 1-2',
-          }]
-        }, {
-          label: '一级 2',
-          children: [{
-            label: '二级 2-1',
-          }, {
-            label: '二级 2-2',
-          }]
-        }, {
-          label: '一级 3',
-          children: [{
-            label: '二级 3-1',
-          }, {
-            label: '二级 3-2',
-          }]
-        }],
+        data: [],
         defaultProps: {
           children: 'children',
           label: 'label'
@@ -117,6 +97,7 @@
         .then(result => {
           if(result.meta.success) {
             global_varibles.testDataSource = result.meta.dataSource;
+            global_varibles.dataSource = result.meta.dataSource;
             this.$message({
               message: '连接成功！',
               type: 'success'
@@ -124,7 +105,44 @@
           } else {
             this.$message({
               message: result.meta.message,
-              type: 'warning'
+              type: 'error'
+            });
+          }
+        }).catch(result => {
+          alert(result)
+        })
+      },
+      // 确定连接
+      confirmConnection() {
+        database_list.test_conn(this.dbInfo)
+        .then(result => {
+          if(result.meta.success) {
+            global_varibles.dataSource = result.meta.dataSource;
+            database_list.get_databases_and_tables({
+              dataSource:global_varibles.dataSource
+            })
+            .then(result => {
+              if(result.meta.success) {
+                global_varibles.dataSource = result.meta.dataSource;
+                this.data = result.data.result;
+                this.dialogVisible = false;
+                this.$message({
+                  message: '连接成功！',
+                  type: 'success'
+                })
+              } else {
+                this.$message({
+                  message: result.meta.message,
+                  type: 'error'
+                });
+              }
+            }).catch(result => {
+              alert(result)
+            })
+          } else {
+            this.$message({
+              message: result.meta.message,
+              type: 'error'
             });
           }
         }).catch(result => {
