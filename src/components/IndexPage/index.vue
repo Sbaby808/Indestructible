@@ -5,7 +5,7 @@
         <HeaderContent></HeaderContent>
       </el-header>
       <el-container>
-        <el-aside width="400px">
+        <el-aside width="auto" v-bind:style="{maxHeight: Height+60+'px'}">
           <DatabasesContent></DatabasesContent>
         </el-aside>
         <el-container>
@@ -46,7 +46,7 @@
 		name:'IndexPage',
 		data() {
 			return {
-        Height:0
+        Height:0,
 			};
 		},
     mounted(){

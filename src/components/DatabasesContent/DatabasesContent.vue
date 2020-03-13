@@ -276,4 +276,21 @@
   .right-menu a:hover {
       background: #99A9BF;
   }
+  .el-tree-node__expand-icon{
+    color: #99A9BF;
+  }
+  .el-tree-node__content:hover .el-tree-node__expand-icon{
+    color: #FFFFFF;
+  }
+  .el-tree-node__content:hover .el-tree-node__expand-icon.is-leaf{
+    color: transparent
+  }
+  .el-tree-node__content:hover{
+    background-color: #99A9BF;
+    color: #FFFFFF;
+  }
+  .el-tree-node:focus>.el-tree-node__content{
+    background-color: #99A9BF;
+    color: #FFFFFF;
+  }
 </style>
