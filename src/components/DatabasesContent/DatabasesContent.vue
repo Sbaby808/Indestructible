@@ -8,7 +8,7 @@
         </div>
       </el-col>
     </el-row>
-    <div id="dataPage">
+    <div id="dataPage" v-loading="loading">
       <el-tree :data="data" id="el-tree" :props="defaultProps" @node-click="handleNodeClick"></el-tree>
       <context-menu class="right-menu"
           :target="contextMenuTarget"
@@ -20,7 +20,7 @@
         <a href="javascript:;" @click="exdbPortDatabaseOrTable">导出{{this.menuLabel}}</a>
       </context-menu>
     </div>
-    <el-dialog title="新建数据库连接" :visible.sync="dialogVisible" :before-close="closeDialog" :destroy-on-close="true" :close-on-click-modal="false">
+    <el-dialog v-loading="new_conn_loading" title="新建数据库连接" :visible.sync="dialogVisible" :before-close="closeDialog" :destroy-on-close="true" :close-on-click-modal="false">
       <el-form :model="dbInfo" :rules="rules">
         <el-form-item label="主机" :label-width="formLabelWidth" prop="dbIp">
           <el-input v-model="dbInfo.dbIp" clearable placeholder="请输入主机地址,如:127.0.0.1" required></el-input>
@@ -76,6 +76,8 @@
         contextMenuVisible: false,
         nodeData: {},
         data: [],
+        loading: false,
+        new_conn_loading: false,
         defaultProps: {
           children: 'children',
           label: 'label'
@@ -89,7 +91,46 @@
       },
       // 刷新数据库列表
       refreshList() {
-
+        this.loading = true;
+        database_list.test_conn(this.dbInfo)
+        .then(result => {
+          if(result.meta.success) {
+            global_varibles.dataSource = result.meta.dataSource;
+            database_list.get_databases_and_tables({
+              dataSource:global_varibles.dataSource
+            })
+            .then(result => {
+              if(result.meta.success) {
+                global_varibles.dataSource = result.meta.dataSource;
+                this.data = result.data.result;
+                this.dialogVisible = false;
+                this.loading = false;
+                this.$message({
+                  message: '刷新成功！',
+                  type: 'success'
+                })
+              } else {
+                this.loading = false;
+                this.$message({
+                  message: result.meta.message,
+                  type: 'error'
+                });
+              }
+            }).catch(result => {
+              this.loading = false;
+              alert(result)
+            })
+          } else {
+            this.loading = false;
+            this.$message({
+              message: result.meta.message,
+              type: 'error'
+            });
+          }
+        }).catch(result => {
+          this.loading = false;
+          alert(result)
+        })
       },
       // 测试数据库连接
       testConnection () {
@@ -114,6 +155,7 @@
       },
       // 确定连接
       confirmConnection() {
+        this.new_conn_loading = true;
         database_list.test_conn(this.dbInfo)
         .then(result => {
           if(result.meta.success) {
@@ -126,26 +168,31 @@
                 global_varibles.dataSource = result.meta.dataSource;
                 this.data = result.data.result;
                 this.dialogVisible = false;
+                this.new_conn_loading = false;
                 this.$message({
                   message: '连接成功！',
                   type: 'success'
                 })
               } else {
+                this.new_conn_loading = false;
                 this.$message({
                   message: result.meta.message,
                   type: 'error'
                 });
               }
             }).catch(result => {
+              this.new_conn_loading = false;
               alert(result)
             })
           } else {
+            this.new_conn_loading = false;
             this.$message({
               message: result.meta.message,
               type: 'error'
             });
           }
         }).catch(result => {
+          this.new_conn_loading = false;
           alert(result)
         })
       },
