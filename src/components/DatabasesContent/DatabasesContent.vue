@@ -16,10 +16,11 @@
           @update:show="(show) => contextMenuVisible = show">
         <a href="javascript:;" @click="createDatabaseOrTable">新建{{this.menuLabel}}</a>
         <a href="javascript:;" @click="deleteDatabaseOrTable">删除{{this.menuLabel}}</a>
-        <a href="javascript:;" @click="attribute">属性</a>
+        <a href="javascript:;" @click="changeDatabaseOrTable">修改{{this.menuLabel}}</a>
         <a href="javascript:;" @click="exdbPortDatabaseOrTable">导出{{this.menuLabel}}</a>
       </context-menu>
     </div>
+    <!-- 新建数据库连接对话框-->
     <el-dialog v-loading="new_conn_loading" title="新建数据库连接" :visible.sync="dialogVisible" :before-close="closeDialog" :destroy-on-close="true" :close-on-click-modal="false">
       <el-form :model="dbInfo" :rules="rules">
         <el-form-item label="主机" :label-width="formLabelWidth" prop="dbIp">
@@ -40,22 +41,150 @@
         <el-button type="primary" @click="confirmConnection">确 定</el-button>
       </div>
   </el-dialog>
+  <!-- 新建数据库对话框-->
+  <el-dialog v-loading="new_database_loading" width="30%" title="创建数据库" :visible.sync="new_database_visible" :before-close="closeNewDatabaseDialog">
+      <el-form :model="newDbInfo" :rules="newDbRules">
+        <el-form-item label="数据库名" label-width="100px" prop="dbName">
+          <el-input v-model="newDbInfo.dbName" clearable placeholder="请输入数据库名称" required></el-input>
+        </el-form-item>
+        <el-form-item label="字符集" label-width="100px" prop="charset">
+          <el-select v-model="newDbInfo.charset" width="auto" @change="newDbInfo.collate = ' '">
+            <el-option v-for="item in charset" :key="item" :value="item"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="排序规则" label-width="100px" prop="collate">
+          <el-select v-model="newDbInfo.collate" width="auto">
+            <el-option v-for="item in charsetAndCollate[newDbInfo.charset]" :key="item" :value="item"></el-option>
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="confirmNewDb">确 定</el-button>
+      </div>
+  </el-dialog>
 	</div>
 </template>
 
 <script>
   import database_list from '../../api/database_list.js'
+  import database from '../../api/database.js'
   import global_varibles from '../global_varibles'
 	export default {
 		name:'DatabasesContent',
 		data() {
 			return {
+        charset : [' ',
+          'armscii8',
+          'ascii',
+          'big5',
+          'binary',
+          'cp850',
+          'cp852',
+          'cp866',
+          'cp932',
+          'cp1250',
+          'cp1251',
+          'cp1256',
+          'cp1257',
+          'dec8',
+          'eucjpms',
+          'euckr',
+          'gb2312',
+          'gb18030',
+          'gbk',
+          'geostd8',
+          'greek',
+          'hebrew',
+          'hp8',
+          'keybcs2',
+          'koi8r',
+          'koi8u',
+          'latin1',
+          'latin2',
+          'latin5',
+          'latin7',
+          'macce',
+          'macroman',
+          'sjis',
+          'swe7',
+          'tis620',
+          'ucs2',
+          'utf8',
+          'utf8mb4',
+          'utf16',
+          'utf16le',
+          'utf32'],
         dialogVisible : false,
+        charsetAndCollate : {
+          ' ':[' '],
+          'armscii8':[' ', 'armscii8_bin', 'armscii8_general_ci'],
+          'ascii':[' ', 'ascii_bin', 'ascii_general_ci'],
+          'big5':[' ', 'big5_bin', 'big5_chinese_ci'],
+          'binary':[' ', 'binary'],
+          'cp850':[' ', 'cp850_bin', 'cp850_general_ci'],
+          'cp852':[' ', 'cp852_bin', 'cp852_general_ci'],
+          'cp866':[' ', 'cp866_bin', 'cp866_general_ci'],
+          'cp932':[' ', 'cp932_bin', 'cp932_japanese_ci'],
+          'cp1250':[' ', 'cp1250_bin', 'cp1250_croatian_ci', 'cp1250_czech_cs', 'cp1250_general_ci', 'cp1250_polish_ci'],
+          'cp1251':[' ', 'cp1251_bin', 'cp1251_bulgarian_ci', 'cp1251_general_ci', 'cp1251_general_cs', 'cp1251_ukrainian_ci'],
+          'cp1256':[' ', 'cp1256_bin', 'cp1256_general_ci'],
+          'cp1257':[' ', 'cp1257_bin', 'cp1257_general_ci', 'cp1257_lithuanian_ci'],
+          'dec8':[' ', 'dec8_bin', 'dec8_swedish_ci'],
+          'eucjpms':[' ', 'eucjpms_bin', 'eucjpms_japanese_ci'],
+          'euckr':[' ', 'euckr_bin', 'euckr_korean_ci'],
+          'gb2312':[' ', 'gb2312_bin', 'gb2312_chinese_ci'],
+          'gb18030':[' ', 'gb18030_bin', 'gb18030_chinese_ci', 'gb18030_unicode_520_ci'],
+          'gbk':[' ', 'gbk_bin', 'gbk_chinese_ci'],
+          'geostd8':[' ', 'geostd8_bin', 'geostd8_general_ci'],
+          'greek':[' ', 'greek_bin', 'greek_general_ci'],
+          'hebrew':[' ', 'hebrew_bin', 'hebrew_general_ci'],
+          'hp8':[' ', 'hp8_bin', 'hp8_english_ci'],
+          'keybcs2':[' ', 'keybcs2_bin', 'keybcs2_general_ci'],
+          'koi8r':[' ', 'koi8r_bin', 'koi8r_general_ci'],
+          'koi8u':[' ', 'koi8u_bin', 'koi8u_general_ci'],
+          'latin1':[' ', 'latin1_bin', 'latin1_danish_ci', 'latin1_general_ci', 'latin1_general_cs', 'latin1_german1_ci', 'latin1_german2_ci', 'latin1_spanish_ci', 'latin1_swedish_ci'],
+          'latin2':[' ', 'latin2_bin', 'latin2_croatian_ci', 'latin2_czech_cs', 'latin2_general_ci', 'latin2_hungarian_ci'],
+          'latin5':[' ', 'latin5_bin', 'latin5_turkish_ci'],
+          'latin7':[' ', 'latin7_bin', 'latin7_estonian_cs', 'latin7_general_ci', 'latin7_general_cs'],
+          'macce':[' ', 'macce_bin', 'macce_general_ci'],
+          'macroman':[' ', 'macroman_bin', 'macroman_general_ci'],
+          'sjis':[' ', 'sjis_bin', 'sjis_japanese_ci'],
+          'swe7':[' ', 'swe7_bin', 'swe7_swedish_ci'],
+          'tis620':[' ', 'tis620_bin', 'tis620_thai_ci'],
+          'ucs2':[' ', 'ucs2_bin', 'ucs2_croatian_ci', 'ucs2_czech_ci', 'ucs2_danish_ci', 'ucs2_esperanto_ci', 'ucs2_estonian_ci', 'ucs2_general_ci', 'ucs2_general_mysql500_ci',
+                  'ucs2_german2_ci', 'ucs2_hungarian_ci', 'ucs2_icelandic_ci', 'ucs2_latvian_ci', 'ucs2_lithuanian_ci', 'ucs2_persian_ci', 'ucs2_polish_ci', 'ucs2_roman_ci',
+                  'ucs2_romanian_ci', 'ucs2_sinhala_ci', 'ucs2_slovak_ci', 'ucs2_slovenian_ci', 'ucs2_spanish_ci', 'ucs2_spanish2_ci', 'ucs2_swedish_ci', 'ucs2_turkish_ci',
+                  'ucs2_unicode_520_ci', 'ucs2_unicode_ci', 'ucs2_vietnamese_ci'],
+          'ujis':[' ', 'ujis_bin', 'ujis_japanese_ci'],
+          'utf8':[' ', 'utf8_bin', 'utf8_croatian_ci', 'utf8_czech_ci', 'utf8_danish_ci', 'utf8_esperanto_ci', 'utf8_estonian_ci', 'utf8_general_ci', 'utf8_general_mysql500_ci',
+                  'utf8_german2_ci', 'utf8_hungarian_ci', 'utf8_icelandic_ci', 'utf8_latvian_ci', 'utf8_lithuanian_ci', 'utf8_persian_ci', 'utf8_polish_ci', 'utf8_roman_ci',
+                  'utf8_romanian_ci', 'utf8_sinhala_ci', 'utf8_slovak_ci', 'utf8_slovenian_ci', 'utf8_spanish_ci', 'utf8_spanish2_ci', 'utf8_swedish_ci', 'utf8_turkish_ci',
+                  'utf8_unicode_520_ci', 'utf8_unicode_ci', 'utf8_vietnamese_ci'],
+          'utf8mb4':[' ', 'utf8mb4_bin', 'utf8mb4_croatian_ci', 'utf8mb4_czech_ci', 'utf8mb4_danish_ci', 'utf8mb4_esperanto_ci', 'utf8mb4_estonian_ci', 'utf8mb4_general_ci',
+                    'utf8mb4_german2_ci', 'utf8mb4_hungarian_ci', 'utf8mb4_icelandic_ci', 'utf8mb4_latvian_ci', 'utf8mb4_lithuanian_ci', 'utf8mb4_persian_ci', 'utf8mb4_polish_ci',
+                    'utf8mb4_roman_ci', 'utf8mb4_romanian_ci', 'utf8mb4_sinhala_ci', 'utf8mb4_slovak_ci', 'utf8mb4_slovenian_ci', 'utf8mb4_spanish_ci', 'utf8mb4_spanish2_ci',
+                    'utf8mb4_swedish_ci', 'utf8mb4_turkish_ci', 'utf8mb4_unicode_520_ci', 'utf8mb4_unicode_ci', 'utf8mb4_vietnamese_ci'],
+          'utf16':[' ', 'utf16_bin', 'utf16_croatian_ci', 'utf16_czech_ci', 'utf16_danish_ci', 'utf16_esperanto_ci', 'utf16_estonian_ci', 'utf16_general_ci', 'utf16_german2_ci',
+                  'utf16_hungarian_ci', 'utf16_icelandic_ci', 'utf16_latvian_ci',  'utf16_lithuanian_ci', 'utf16_persian_ci', 'utf16_polish_ci', 'utf16_roman_ci', 'utf16_romanian_ci',
+                  'utf16_sinhala_ci', 'utf16_slovak_ci', 'utf16_slovenian_ci', 'utf16_spanish_ci', 'utf16_spanish2_ci', 'utf16_swedish_ci', 'utf16_turkish_ci', 'utf16_unicode_520_ci',
+                  'utf16_unicode_ci', 'utf16_vietnamese_ci'],
+          'utf16le':[' ', 'utf16le_bin', 'utf16le_general_ci'],
+          'utf32':[' ', 'utf32_bin', 'utf32_croatian_ci', 'utf32_czech_ci', 'utf32_danish_ci', 'utf32_esperanto_ci', 'utf32_estonian_ci', 'utf32_general_ci', 'utf32_german2_ci',
+                  'utf32_hungarian_ci', 'utf32_icelandic_ci', 'utf32_latvian_ci', 'utf32_lithuanian_ci', 'utf32_persian_ci', 'utf32_polish_ci', 'utf32_roman_ci', 'utf32_romanian_ci',
+                  'utf32_sinhala_ci', 'utf32_slovak_ci', 'utf32_slovenian_ci', 'utf32_spanish_ci', 'utf32_spanish2_ci', 'utf32_swedish_ci', 'utf32_turkish_ci', 'utf32_unicode_520_ci',
+                  'utf32_unicode_ci', 'utf32_vietnamese_ci']
+        },
+        new_database_visible:false,
         dbInfo:{
           dbIp:'',
           dbPort:'',
           dbUser:'',
           dbPasswd:''
+        },
+        newDbInfo:{
+          dbName:'',
+          charset:' ',
+          collate:' '
         },
         rules:{
           dbIp:[
@@ -71,6 +200,11 @@
             { required: true, message: '请输入密码', trigger: 'blur' }
           ]
         },
+        newDbRules:{
+          dbName:[
+            { required: true, message: '请输入数据库名称', trigger: 'blur' }
+          ]
+        },
         formLabelWidth : '80px',
         contextMenuTarget: null,
         contextMenuVisible: false,
@@ -78,6 +212,7 @@
         data: [],
         loading: false,
         new_conn_loading: false,
+        new_database_loading: false,
         defaultProps: {
           children: 'children',
           label: 'label'
@@ -88,6 +223,35 @@
       // 新建数据库连接
       newConnection() {
         this.dialogVisible = true;
+      },
+      confirmNewDb() {
+        database.create_db({
+          dbName:this.newDbInfo.dbName,
+          charset:this.newDbInfo.charset,
+          collate:this.newDbInfo.collate,
+          dataSource:global_varibles.dataSource
+        }).then(result => {
+          this.new_database_visible = false;
+          if(result.meta.success) {
+            this.$message({
+              message:'创建数据库成功！',
+              type:'success'
+            })
+            this.refreshList()
+          } else {
+            this.new_database_visible = false;
+            this.$message({
+              message:result.meta.message,
+              type:'error'
+            })
+          }
+        }).catch(result => {
+          this.new_database_visible = false;
+          this.$message({
+            message:'创建数据库失败！',
+            type:'error'
+          })
+        })
       },
       // 刷新数据库列表
       refreshList() {
@@ -206,19 +370,23 @@
         };
         this.dialogVisible = false;
       },
+      // 关闭新建数据库Dialog前回调
+      closeNewDatabaseDialog(){
+        this.new_database_visible = false;
+      },
       handleNodeClick(data) {
         // console.log(data)
         this.nodeData = data
       },
       createDatabaseOrTable() {
         this.contextMenuVisible = false;
-        console.log("create " + this.menuLabel);
+        this.new_database_visible = true;
       },
       deleteDatabaseOrTable() {
         this.contextMenuVisible = false;
         console.log("delete " + this.menuLabel);
       },
-      attribute() {
+      changeDatabaseOrTable() {
         this.contextMenuVisible = false;
         console.log("show attribute " + this.menuLabel);
       },
@@ -243,7 +411,11 @@
     },
     computed: {
       menuLabel() {
-        return this.nodeData.children == null ? '表' : '数据库';
+        if(this.nodeData.label == null) {
+          return '数据库';
+        } else {
+          return this.nodeData.children == null ? '表' : '数据库';
+        }
       }
     },
   };
