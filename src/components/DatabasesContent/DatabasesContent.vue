@@ -13,7 +13,7 @@
       <context-menu class="right-menu"
           :target="contextMenuTarget"
           :show="contextMenuVisible"
-          @update:show="(show) => contextMenuVisible = show">
+          @update:show="(show) => changeContextMenu(show)">
         <a href="javascript:;" @click="createDatabaseOrTable">新建{{this.menuLabel}}</a>
         <a href="javascript:;" @click="deleteDatabaseOrTable">删除{{this.menuLabel}}</a>
         <a href="javascript:;" @click="changeDatabaseOrTable">修改{{this.menuLabel}}</a>
@@ -379,9 +379,15 @@
       closeNewDatabaseDialog(){
         this.new_database_visible = false;
       },
+      // 左击数据库
       handleNodeClick(data) {
         // console.log(data)
-        this.nodeData = data
+        this.nodeData = data;
+      },
+      // 右击列表
+      changeContextMenu(show) {
+        this.contextMenuVisible = show;
+        event.target.click();
       },
       createDatabaseOrTable() {
         this.contextMenuVisible = false;
@@ -389,7 +395,29 @@
       },
       deleteDatabaseOrTable() {
         this.contextMenuVisible = false;
-        console.log("delete " + this.menuLabel);
+        if(this.menuLabel == '数据库') {
+          database.drop_db({
+            dataSource:global_varibles.dataSource,
+            dbName:this.nodeData.label
+          }).then(result => {
+            if(result.meta.success) {
+              this.$message({
+                message:'删除数据库成功！',
+                type:'success'
+              });
+              this.refreshList();
+            } else {
+              this.$message({
+                message:result.meta.message,
+                type:'error'
+              });
+            }
+          }).catch(result => {
+            alert(result);
+          })
+        } else if(this.menuLabel == '表') {
+
+        }
       },
       changeDatabaseOrTable() {
         this.contextMenuVisible = false;
@@ -398,7 +426,7 @@
       exdbPortDatabaseOrTable() {
         this.contextMenuVisible = false;
         console.log("exdbPort " + this.menuLabel);
-      }
+      },
     },
     mounted() {
       this.$nextTick(() => {
@@ -409,7 +437,7 @@
         tree.forEach(i => {
           i.addEventListener('contextmenu',event => {
             // 如果右键了，则模拟点击这个treeitem
-            event.target.click()
+            event.target.click();
           })
         })
       })
