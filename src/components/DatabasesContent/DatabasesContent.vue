@@ -224,14 +224,18 @@
       newConnection() {
         this.dialogVisible = true;
       },
+      // 确定新建数据库
       confirmNewDb() {
+        this.new_database_loading = true;
         database.create_db({
           dbName:this.newDbInfo.dbName,
           charset:this.newDbInfo.charset,
           collate:this.newDbInfo.collate,
           dataSource:global_varibles.dataSource
         }).then(result => {
+          this.newDbInfo = {dbName:'',charset:' ',collate:' '};
           this.new_database_visible = false;
+          this.new_database_loading = false;
           if(result.meta.success) {
             this.$message({
               message:'创建数据库成功！',
@@ -247,6 +251,7 @@
           }
         }).catch(result => {
           this.new_database_visible = false;
+          this.new_database_loading = false;
           this.$message({
             message:'创建数据库失败！',
             type:'error'
