@@ -209,6 +209,7 @@
         contextMenuTarget: null,
         contextMenuVisible: false,
         nodeData: {},
+        parentNodeData: {},
         data: [],
         loading: false,
         new_conn_loading: false,
@@ -380,9 +381,10 @@
         this.new_database_visible = false;
       },
       // 左击数据库
-      handleNodeClick(data) {
+      handleNodeClick(data, node) {
         // console.log(data)
         this.nodeData = data;
+        this.parentNodeData = node.parent;
       },
       // 右击列表
       changeContextMenu(show) {
@@ -395,29 +397,59 @@
       },
       deleteDatabaseOrTable() {
         this.contextMenuVisible = false;
-        if(this.menuLabel == '数据库') {
-          database.drop_db({
-            dataSource:global_varibles.dataSource,
-            dbName:this.nodeData.label
-          }).then(result => {
-            if(result.meta.success) {
-              this.$message({
-                message:'删除数据库成功！',
-                type:'success'
-              });
-              this.refreshList();
-            } else {
-              this.$message({
-                message:result.meta.message,
-                type:'error'
-              });
-            }
-          }).catch(result => {
-            alert(result);
-          })
-        } else if(this.menuLabel == '表') {
-
-        }
+        this.$confirm('此操作将删除' + this.nodeData.label + this.menuLabel + ', 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          if(this.menuLabel == '数据库') {
+            database.drop_db({
+              dataSource:global_varibles.dataSource,
+              dbName:this.nodeData.label
+            }).then(result => {
+              if(result.meta.success) {
+                this.$message({
+                  message:'删除数据库成功！',
+                  type:'success'
+                });
+                this.refreshList();
+              } else {
+                this.$message({
+                  message:result.meta.message,
+                  type:'error'
+                });
+              }
+            }).catch(result => {
+              alert(result);
+            })
+          } else if(this.menuLabel == '表') {
+            database.drop_tb({
+              dataSource:global_varibles.dataSource,
+              tbName:this.nodeData.label,
+              dbName:this.parentNodeData.label
+            }).then(result => {
+              if(result.meta.success) {
+                this.$message({
+                  message:'删除表成功！',
+                  type:'success'
+                });
+                this.refreshList();
+              } else {
+                this.$message({
+                  message:result.meta.message,
+                  type:'error'
+                });
+              }
+            }).catch(result => {
+              alert(result);
+            })
+          }
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          });
+        });
       },
       changeDatabaseOrTable() {
         this.contextMenuVisible = false;

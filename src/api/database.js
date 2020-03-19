@@ -6,5 +6,8 @@ export default{
   },
   drop_db: params => {
     return API.DELETE('/database/del_db', params);
+  },
+  drop_tb: params => {
+    return API.DELETE('/database/del_tb', params);
   }
 }
