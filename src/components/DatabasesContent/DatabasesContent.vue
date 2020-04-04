@@ -68,6 +68,7 @@
 <script>
   import database_list from '../../api/database_list.js'
   import database from '../../api/database.js'
+  import download from '../../api/download.js'
   import global_varibles from '../global_varibles'
 	export default {
 		name:'DatabasesContent',
@@ -455,10 +456,74 @@
         this.contextMenuVisible = false;
         console.log("show attribute " + this.menuLabel);
       },
+      // 导出数据库/表
       exdbPortDatabaseOrTable() {
         this.contextMenuVisible = false;
-        console.log("exdbPort " + this.menuLabel);
+        // 导出数据库
+        if('数据库' == this.menuLabel) {
+          this.$prompt('请输入文件名', '导出数据库', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            inputPattern: /^(.)+$/,
+            inputErrorMessage: '文件名不能为空'
+          }).then(({ value }) => {
+            this.$message({
+              type: 'success',
+              message: '保存为: ' + value + '.sql'
+            });
+            database.export_db({
+              dbName : this.nodeData.label,
+              fileName : value,
+              dataSource : global_varibles.dataSource
+            }).then(result => {
+              if(result.meta.success) {
+                download.download({
+                  fileName : result.data
+                }).then(result => {
+                  this.downloadSQLFile(result, value);
+                }).catch(result => {
+                  alert(result);
+                })
+              } else {
+                this.$message({
+                  message:result.meta.message,
+                  type:'error'
+                });
+              }
+            }).catch(result => {
+              alert(result);
+            })
+
+          }).catch(() => {
+            this.$message({
+              type: 'info',
+              message: '取消输入'
+            });
+          });
+        } else {
+          // 导出表
+
+        }
+        console.log("exdbPort " + this.nodeData.label + this.menuLabel);
       },
+      downloadSQLFile(data, fileName) {
+        //定义文件内容，类型必须为Blob 否则createObjectURL会报错
+        // 不需要再将data进行stringfy了！！！
+        let content = new Blob([data])
+
+        //生成url对象
+        let urlObject = window.URL || window.webkitURL || window
+        let url = urlObject.createObjectURL(content)
+        //生成<a></a>DOM元素
+        let el = document.createElement('a')
+        //链接赋值
+        el.href = url
+        el.download = fileName + '.sql'
+        //必须点击否则不会下载
+        el.click()
+        //移除链接释放资源
+        urlObject.revokeObjectURL(url)
+      }
     },
     mounted() {
       this.$nextTick(() => {
