@@ -465,7 +465,8 @@
             confirmButtonText: '确定',
             cancelButtonText: '取消',
             inputPattern: /^(.)+$/,
-            inputErrorMessage: '文件名不能为空'
+            inputErrorMessage: '文件名不能为空',
+            inputValue: this.nodeData.label
           }).then(({ value }) => {
             this.$message({
               type: 'success',
