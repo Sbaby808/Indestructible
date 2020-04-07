@@ -12,5 +12,14 @@ export default{
   },
   export_db: params => {
     return API.GET('/database/export_db', params);
+  },
+  table_structure: params => {
+    return API.GET("/database/table_structure", params);
+  },
+  drop_column: params => {
+    return API.DELETE("/database/drop_column", params);
+  },
+  add_column: params => {
+    return API.POST("/database/add_column", params);
   }
 }
