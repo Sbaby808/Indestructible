@@ -21,5 +21,8 @@ export default{
   },
   add_column: params => {
     return API.POST("/database/add_column", params);
+  },
+  modify_column: params => {
+    return API.POST("/database/modify_column", params);
   }
 }

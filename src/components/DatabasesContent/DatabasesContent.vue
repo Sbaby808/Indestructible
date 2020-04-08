@@ -43,7 +43,7 @@
       </div>
   </el-dialog>
   <!-- 新建数据库对话框-->
-  <el-dialog v-loading="new_database_loading" width="30%" title="创建数据库" :visible.sync="new_database_visible" :before-close="closeModifyTableDialog">
+  <el-dialog v-loading="new_database_loading" width="30%" title="创建数据库" :visible.sync="new_database_visible" :before-close="closeNewDatabaseDialog">
       <el-form :model="newDbInfo" :rules="newDbRules">
         <el-form-item label="数据库名" label-width="100px" prop="dbName">
           <el-input v-model="newDbInfo.dbName" clearable placeholder="请输入数据库名称" required></el-input>
@@ -64,7 +64,7 @@
       </div>
   </el-dialog>
   <!-- 修改表对话框-->
-  <el-dialog v-loading="modify_table_loading" width="50%" title="修改表" :visible.sync="modify_table_visible" :before-close="closeNewDatabaseDialog">
+  <el-dialog v-loading="modify_table_loading" width="50%" title="修改表" :visible.sync="modify_table_visible" :before-close="closeModifyTableDialog">
     <div style="text-align: left;">
       <el-table
         :data="tableStructure"
@@ -77,7 +77,7 @@
           width="180">
           <template slot-scope="scope">
             <span v-show="editline != scope.$index">{{scope.row.field}}</span>
-            <el-input v-show="editline == scope.$index" v-model="scope.row.field" placeholder="请输入内容"></el-input>
+            <el-input v-show="editline == scope.$index" v-model="editableTableStructure.field" placeholder="请输入内容"></el-input>
           </template>
         </el-table-column>
         <el-table-column
@@ -86,7 +86,7 @@
           width="180">
           <template slot-scope="scope">
             <span v-show="editline != scope.$index">{{scope.row.type}}</span>
-            <el-select v-show="editline == scope.$index" v-model="scope.row.type" filterable placeholder="请选择">
+            <el-select v-show="editline == scope.$index" v-model="editableTableStructure.type" filterable placeholder="请选择">
               <el-option
                 v-for="item in typeOptions"
                 :key="item.value"
@@ -101,7 +101,7 @@
           label="长度">
           <template slot-scope="scope">
             <span v-show="editline != scope.$index">{{scope.row.size}}</span>
-            <el-input type="number" v-show="editline == scope.$index" v-model="scope.row.size" placeholder="请输入内容"></el-input>
+            <el-input type="number" v-show="editline == scope.$index" v-model="editableTableStructure.size" placeholder="请输入内容"></el-input>
           </template>
         </el-table-column>
         <el-table-column
@@ -109,7 +109,7 @@
           label="不是null">
           <template slot-scope="scope">
             <el-checkbox v-model="scope.row.notnull" disabled="true" v-show="editline != scope.$index"></el-checkbox>
-            <el-checkbox v-model="scope.row.notnull" v-show="editline == scope.$index"></el-checkbox>
+            <el-checkbox v-model="editableTableStructure.notnull" v-show="editline == scope.$index"></el-checkbox>
           </template>
         </el-table-column>
         <el-table-column
@@ -117,7 +117,7 @@
           label="主键">
           <template slot-scope="scope">
             <el-checkbox v-model="scope.row.key" disabled="true" v-show="editline != scope.$index"></el-checkbox>
-            <el-checkbox v-model="scope.row.key" v-show="editline == scope.$index"></el-checkbox>
+            <el-checkbox v-model="editableTableStructure.key" v-show="editline == scope.$index"></el-checkbox>
           </template>
         </el-table-column>
         <el-table-column
@@ -165,7 +165,7 @@
     </div>
 
     <div slot="footer" class="dialog-footer">
-      <el-button type="primary" @click="modify_table_visible = false">关闭</el-button>
+      <el-button type="primary" @click="closeModifyTableDialog">关闭</el-button>
     </div>
   </el-dialog>
 	</div>
@@ -624,7 +624,16 @@
       },
       // 关闭修改表Dialog前回调
       closeModifyTableDialog(){
+        this.add_table_structure_visible = false;
         this.modify_table_visible = false;
+        this.editableTableStructure = {
+            field:'',
+            type:'',
+            size:255,
+            notnull:false,
+            key:false
+          };
+        this.editline = -1;
       },
       // 左击数据库
       handleNodeClick(data, node) {
@@ -728,9 +737,67 @@
       confirmModifyTable(flag, scope) {
         this.modify_table_loading = true;
         if(flag) {
-
+          if(scope.row.field == this.editableTableStructure.field &&
+            scope.row.type == this.editableTableStructure.type &&
+            scope.row.size == this.editableTableStructure.size &&
+            scope.row.notnull == this.editableTableStructure.notnull &&
+            scope.row.key == this.editableTableStructure.key) {
+              // 未修改
+              this.editableTableStructure = {
+                field:'',
+                type:'',
+                size:255,
+                notnull:false,
+                key:false
+              };
+              this.modify_table_loading = false;
+              this.$message({
+                message:'未做任何修改！',
+                type:'warning'
+              });
+            } else {
+              database.modify_column({
+                oldTableStructureVo: scope.row,
+                newTableStructureVo: this.editableTableStructure,
+                dbName: this.parentNodeData.label,
+                tbName: this.nodeData.label,
+                dataSource: global_varibles.dataSource
+              }).then(result => {
+                if(result.meta.success) {
+                  this.editableTableStructure = {
+                    field:'',
+                    type:'',
+                    size:255,
+                    notnull:false,
+                    key:false
+                  };
+                  this.tableStructure = result.data;
+                  this.modify_table_loading = false;
+                  this.$message({
+                    message: '修改字段成功！',
+                    type:'success'
+                  });
+                } else {
+                  console.log(this.editableTableStructure)
+                  this.editableTableStructure = {
+                    field:'',
+                    type:'',
+                    size:255,
+                    notnull:false,
+                    key:false
+                  };
+                  this.modify_table_loading = false;
+                  this.$message({
+                    message: result.meta.message,
+                    type:'error'
+                  });
+                }
+              }).catch(result => {
+                alert(result);
+              })
+            }
         } else {
-          this.tableStructure[scope.$index] = JSON.parse(JSON.stringify(this.editableTableStructure));
+          this.modify_table_loading = false;
           this.editableTableStructure = {
             field:'',
             type:'',
