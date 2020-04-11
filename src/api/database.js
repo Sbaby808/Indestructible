@@ -24,5 +24,8 @@ export default{
   },
   modify_column: params => {
     return API.POST("/database/modify_column", params);
+  },
+  show_table_data: params => {
+    return API.GET("/database/show_table_data", params);
   }
 }

@@ -15,7 +15,7 @@
                 <el-header style="background-color: #E9EEF3;height: auto;padding: 0;">
                   <SQLContent></SQLContent>
                 </el-header>
-                <el-main>
+                <el-main style="background-color: #578DBF;padding-left:5px;padding-top: 5px;padding-right: 0px;padding-bottom: 0px;margin: 0px;">
                   <DataContent></DataContent>
                 </el-main>
               </el-container>

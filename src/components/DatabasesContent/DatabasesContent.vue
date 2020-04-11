@@ -965,7 +965,11 @@
       },
       // 查看表数据
       showTableData(){
-
+        this.contextMenuVisible = false;
+        this.$store.commit("setDbName", this.parentNodeData.label);
+        this.$store.commit("setTbName", this.nodeData.label);
+        this.$store.commit("setCurrentPage", 1);
+        this.$store.commit("setSearchFlag", true);
       }
     },
     mounted() {
@@ -989,8 +993,53 @@
         } else {
           return this.nodeData.children == null ? '表' : '数据库';
         }
+      },
+      searchFlag() {
+        return this.$store.state.searchFlag;
+      },
+      searchDbName() {
+        return this.$store.state.dbName;
+      },
+      searchTbName() {
+        return this.$store.state.tbName;
+      },
+      searchPage() {
+        return this.$store.state.currentPage;
       }
     },
+    watch: {
+      searchFlag(val) {
+        if(val) {
+          database.show_table_data({
+            dbName: this.searchDbName,
+            tbName: this.searchTbName,
+            pageNum: this.searchPage,
+            pageSize: 10,
+            ordField: "",
+            sort: false,
+            dataSource: global_varibles.dataSource
+          }).then(result => {
+            if(result.meta.success) {
+              this.$store.commit('setTableData', result.data.data);
+              this.$store.commit('setColumns', result.data.columns);
+              this.$store.commit('setTotal', result.data.total);
+              this.$message({
+                message: '查询数据成功！',
+                type: 'success'
+              })
+            } else {
+              this.$message({
+                message: result.meta.message,
+                type: 'error'
+              })
+            }
+          }).catch(result => {
+            alert(result);
+          });
+          this.$store.commit('setSearchFlag', false);
+        }
+      }
+    }
   };
 </script>
 
