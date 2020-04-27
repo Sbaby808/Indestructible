@@ -62,8 +62,10 @@
           return this.$store.state.currentPage;
         },
         set(val) {
-          this.$store.commit("setCurrentPage", val);
-          this.$store.commit("setSearchFlag", true);
+          if(global_varibles.dataSource != '') {
+            this.$store.commit("setCurrentPage", val);
+            this.$store.commit("setSearchFlag", true);
+          }
         }
 
       }

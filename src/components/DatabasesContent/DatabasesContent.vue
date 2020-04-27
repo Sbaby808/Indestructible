@@ -1009,6 +1009,7 @@
     },
     watch: {
       searchFlag(val) {
+        console.log(val)
         if(val) {
           database.show_table_data({
             dbName: this.searchDbName,
