@@ -27,5 +27,11 @@ export default{
   },
   show_table_data: params => {
     return API.GET("/database/show_table_data", params);
+  },
+  get_database_charset_and_collation: params => {
+    return API.GET("/database/get_database_charset_and_collation", params);
+  },
+  update_database_charset_and_collation: params => {
+    return API.POST("/database/update_database_charset_and_collation", params);
   }
 }

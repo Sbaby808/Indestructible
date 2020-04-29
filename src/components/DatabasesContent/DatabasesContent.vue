@@ -63,6 +63,28 @@
         <el-button type="primary" @click="confirmNewDb">确 定</el-button>
       </div>
   </el-dialog>
+  <!-- 修改数据库对话框-->
+  <el-dialog v-loading="update_database_loading" width="30%" title="创建数据库" :visible.sync="update_database_visible" :before-close="closeUpdateDatabaseDialog">
+      <el-form :model="newDbInfo">
+        <el-form-item label="数据库名" label-width="100px" prop="dbName">
+          <el-input v-model="newDbInfo.dbName" disabled=""></el-input>
+        </el-form-item>
+        <el-form-item label="字符集" label-width="100px" prop="charset">
+          <el-select v-model="newDbInfo.charset" width="auto" @change="newDbInfo.collate = ' '">
+            <el-option v-for="item in charset" :key="item" :value="item"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="排序规则" label-width="100px" prop="collate">
+          <el-select v-model="newDbInfo.collate" width="auto">
+            <el-option v-for="item in charsetAndCollate[newDbInfo.charset]" :key="item" :value="item"></el-option>
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="info" @click="resetUpdateDb">重 置</el-button>
+        <el-button type="warning" @click="confirmUpdateDb">修 改</el-button>
+      </div>
+  </el-dialog>
   <!-- 修改表对话框-->
   <el-dialog v-loading="modify_table_loading" width="50%" title="修改表" :visible.sync="modify_table_visible" :before-close="closeModifyTableDialog">
     <div style="text-align: left;">
@@ -283,6 +305,7 @@
                   'utf32_unicode_ci', 'utf32_vietnamese_ci']
         },
         new_database_visible:false,
+        update_database_visible: false,
         modify_table_visible:false,
         add_table_structure_visible: false,
         dbInfo:{
@@ -292,6 +315,11 @@
           dbPasswd:''
         },
         newDbInfo:{
+          dbName:'',
+          charset:' ',
+          collate:' '
+        },
+        oldDbInfo:{
           dbName:'',
           charset:' ',
           collate:' '
@@ -324,6 +352,7 @@
         loading: false,
         new_conn_loading: false,
         new_database_loading: false,
+        update_database_loading: false,
         modify_table_loading: false,
         defaultProps: {
           children: 'children',
@@ -501,6 +530,50 @@
           })
         })
       },
+      // 确定修改数据库
+      confirmUpdateDb() {
+        this.update_database_loading = true;
+        if(this.oldDbInfo.charset == this.newDbInfo.charset && this.oldDbInfo.collate == this.newDbInfo.collate) {
+          this.update_database_loading = false;
+          this.$message({
+            message:'未作任何修改！',
+            type:'info'
+          });
+        } else {
+          database.update_database_charset_and_collation({
+            dataSource : global_varibles.dataSource,
+            dbName : this.nodeData.label,
+            newCharset : this.newDbInfo.charset,
+            oldCharset : this.oldDbInfo.charset,
+            newCollation : this.newDbInfo.collate,
+            oldCollation : this.oldDbInfo.collate
+          }).then(result => {
+            if(result.meta.success) {
+              this.update_database_visible = false;
+              this.closeUpdateDatabaseDialog();
+              this.update_database_loading = false;
+              this.$message({
+                message: '修改成功！',
+                type: 'success'
+              });
+            } else {
+              this.$message({
+                message: result.meta.message,
+                type: 'error'
+              });
+              this.update_database_loading = false;
+            }
+          }).catch(result => {
+            alert(result);
+            this.update_database_loading = false;
+          })
+        }
+      },
+      // 重置修改数据库信息
+      resetUpdateDb() {
+        this.newDbInfo.charset = this.oldDbInfo.charset;
+        this.newDbInfo.collate = this.oldDbInfo.collate;
+      },
       // 刷新数据库列表
       refreshList() {
         this.loading = true;
@@ -622,6 +695,20 @@
       closeNewDatabaseDialog(){
         this.new_database_visible = false;
       },
+      // 关闭修改数据库Dialog前回调
+      closeUpdateDatabaseDialog(){
+        this.update_database_visible = false;
+        this.newDbInfo = {
+          dbName:'',
+          charset:' ',
+          collate:' '
+        };
+        this.oldDbInfo = {
+          dbName:'',
+          charset:' ',
+          collate:' '
+        };
+      },
       // 关闭修改表Dialog前回调
       closeModifyTableDialog(){
         this.add_table_structure_visible = false;
@@ -711,7 +798,27 @@
       changeDatabaseOrTable() {
         this.contextMenuVisible = false;
         if('数据库' == this.menuLabel) {
-
+          database.get_database_charset_and_collation({
+            dbName: this.nodeData.label,
+            dataSource: global_varibles.dataSource
+          }).then(result => {
+            if(result.meta.success) {
+              this.oldDbInfo.dbName = this.nodeData.label;
+              this.oldDbInfo.charset = result.data.charset;
+              this.oldDbInfo.collate = result.data.collation;
+              this.newDbInfo.dbName = this.nodeData.label;
+              this.newDbInfo.charset = result.data.charset;
+              this.newDbInfo.collate = result.data.collation;
+              this.update_database_visible = true;
+            } else {
+              this.$message({
+                message:result.meta.message,
+                type:'error'
+              })
+            }
+          }).catch(result => {
+            alert(result);
+          })
         } else {
           // 修改表
           this.modify_table_visible = true;
