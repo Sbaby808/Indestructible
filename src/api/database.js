@@ -33,5 +33,8 @@ export default{
   },
   update_database_charset_and_collation: params => {
     return API.POST("/database/update_database_charset_and_collation", params);
+  },
+  export_table: params => {
+    return API.GET('/database/export_table', params);
   }
 }

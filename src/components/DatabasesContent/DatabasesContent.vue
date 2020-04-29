@@ -1048,7 +1048,47 @@
           });
         } else {
           // 导出表
+          this.$prompt('请输入文件名', '导出表', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            inputPattern: /^(.)+$/,
+            inputErrorMessage: '文件名不能为空',
+            inputValue: this.nodeData.label
+          }).then(({ value }) => {
+            this.$message({
+              type: 'success',
+              message: '保存为: ' + value + '.sql'
+            });
+            database.export_table({
+              dbName : this.parentNodeData.label,
+              tbName : this.nodeData.label,
+              fileName : value,
+              dataSource : global_varibles.dataSource
+            }).then(result => {
+              if(result.meta.success) {
+                download.download({
+                  fileName : result.data
+                }).then(result => {
+                  this.downloadSQLFile(result, value);
+                }).catch(result => {
+                  alert(result);
+                })
+              } else {
+                this.$message({
+                  message:result.meta.message,
+                  type:'error'
+                });
+              }
+            }).catch(result => {
+              alert(result);
+            })
 
+          }).catch(() => {
+            this.$message({
+              type: 'info',
+              message: '取消输入'
+            });
+          });
         }
         // console.log("exdbPort " + this.nodeData.label + this.menuLabel);
       },
@@ -1116,7 +1156,6 @@
     },
     watch: {
       searchFlag(val) {
-        console.log(val)
         if(val) {
           database.show_table_data({
             dbName: this.searchDbName,
