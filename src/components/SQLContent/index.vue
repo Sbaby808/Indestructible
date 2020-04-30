@@ -16,6 +16,7 @@
 
 <script>
   import global_varibles from '../global_varibles';
+  import database from '../../api/database.js'
   import "codemirror/theme/mdn-like.css";
   import "codemirror/lib/codemirror.css";
   import "codemirror/addon/hint/show-hint.css";
@@ -53,7 +54,13 @@
             // 检查是否是 SQL 文件
             if(_this.sqlFile.files[0].name.endsWith('.sql')) {
               _this.code = e.target.result;
-              global_varibles.editor.setValue(window.JSON.parse(_this.code));
+              try {
+                global_varibles.editor.setValue(window.JSON.parse(_this.code));
+              }catch(e){
+                console.log(e);
+                global_varibles.editor.setValue(_this.code);
+              }
+
             } else {
               _this.$message({
                 dangerouslyUseHTMLString: true,
@@ -67,8 +74,45 @@
         });
       },
       runSQL() {
-        // TODO
-        alert("run sql scripts!");
+        if(global_varibles.dataSource == '') {
+          this.$message({
+            message: '请连接数据源后再进行操作！',
+            type: 'error'
+          });
+        } else {
+          if(this.code == '') {
+            this.$message({
+              message: '请输入 SQL 脚本！',
+              type: 'warning'
+            });
+          } else {
+            database.execute_sql({
+              dataSource : global_varibles.dataSource,
+              sqlScript : global_varibles.sqlCode
+            }).then(result => {
+              console.log(result);
+              if(result.meta.success) {
+                if(result.data.data) {
+                  this.$store.commit('setTableData', result.data.data);
+                  this.$store.commit('setColumns', result.data.columns);
+                  this.$store.commit('setTotal', result.data.total);
+                  this.$store.commit('setShowPage', false);
+                }
+                this.$message({
+                  message: '执行SQL脚本成功！',
+                  type: 'success'
+                });
+              } else {
+                this.$message({
+                  message: result.meta.message,
+                  type: 'error'
+                });
+              }
+            }).catch(result => {
+              alert(result);
+            })
+          }
+        }
       },
       saveSQL() {
         this.$prompt('请输入文件名', '保存SQL脚本到本地', {

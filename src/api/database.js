@@ -39,5 +39,8 @@ export default{
   },
   new_table: params => {
     return API.POST('/database/new_table', params);
+  },
+  execute_sql: params => {
+    return API.POST('/database/execute_sql', params);
   }
 }

@@ -16,6 +16,7 @@
       </el-table-column>
     </el-table>
     <el-pagination
+      v-show="showPage"
       style="text-align: left;"
       background
       layout="total, prev, pager, next"
@@ -56,6 +57,9 @@
       },
       total() {
         return this.$store.state.total;
+      },
+      showPage() {
+        return this.$store.state.showPage;
       },
       currentPage: {
         get() {

@@ -21,7 +21,9 @@ const store = new Vuex.Store({
     // 当前查询的表名
     tbName: '',
     // 是否重新查询
-    searchFlag: false
+    searchFlag: false,
+    // 是否显示分页插件
+    showPage: true,
   },
   mutations:{
     setTableData(state, payload) {
@@ -44,7 +46,10 @@ const store = new Vuex.Store({
     },
     setSearchFlag(state, payload) {
       state.searchFlag = payload;
-    }
+    },
+     setShowPage(state, payload) {
+       state.showPage = payload;
+     }
   }
 })
 

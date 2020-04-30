@@ -1392,6 +1392,7 @@
       // 查看表数据
       showTableData(){
         this.contextMenuVisible = false;
+        this.$store.commit('setShowPage', true);
         this.$store.commit("setDbName", this.parentNodeData.label);
         this.$store.commit("setTbName", this.nodeData.label);
         this.$store.commit("setCurrentPage", 1);
