@@ -64,7 +64,7 @@
       </div>
   </el-dialog>
   <!-- 修改数据库对话框-->
-  <el-dialog v-loading="update_database_loading" width="30%" title="创建数据库" :visible.sync="update_database_visible" :before-close="closeUpdateDatabaseDialog">
+  <el-dialog v-loading="update_database_loading" width="30%" title="修改数据库" :visible.sync="update_database_visible" :before-close="closeUpdateDatabaseDialog">
       <el-form :model="newDbInfo">
         <el-form-item label="数据库名" label-width="100px" prop="dbName">
           <el-input v-model="newDbInfo.dbName" disabled=""></el-input>
@@ -84,6 +84,112 @@
         <el-button type="info" @click="resetUpdateDb">重 置</el-button>
         <el-button type="warning" @click="confirmUpdateDb">修 改</el-button>
       </div>
+  </el-dialog>
+  <!-- 新建表对话框-->
+  <el-dialog v-loading="new_table_loading" width="50%" title="新建表" :visible.sync="new_table_visible" :before-close="closeNewTableDialog" :close-on-click-modal="false">
+    <div style="text-align: left;">
+      <el-table
+        :data="tableStructure"
+        height="500"
+        border
+        style="width: 100%">
+        <el-table-column
+          prop="field"
+          label="名"
+          width="180">
+          <template slot-scope="scope">
+            <span v-show="editline != scope.$index">{{scope.row.field}}</span>
+            <el-input v-show="editline == scope.$index" v-model="editableTableStructure.field" placeholder="请输入内容"></el-input>
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="type"
+          label="类型"
+          width="180">
+          <template slot-scope="scope">
+            <span v-show="editline != scope.$index">{{scope.row.type}}</span>
+            <el-select v-show="editline == scope.$index" v-model="editableTableStructure.type" filterable placeholder="请选择">
+              <el-option
+                v-for="item in typeOptions"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value">
+              </el-option>
+            </el-select>
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="size"
+          label="长度">
+          <template slot-scope="scope">
+            <span v-show="editline != scope.$index">{{scope.row.size}}</span>
+            <el-input type="number" v-show="editline == scope.$index" v-model="editableTableStructure.size" placeholder="请输入内容"></el-input>
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="notnull"
+          label="不是null">
+          <template slot-scope="scope">
+            <el-checkbox v-model="scope.row.notnull" disabled="true" v-show="editline != scope.$index"></el-checkbox>
+            <el-checkbox v-model="editableTableStructure.notnull" v-show="editline == scope.$index"></el-checkbox>
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="key"
+          label="主键">
+          <template slot-scope="scope">
+            <el-checkbox v-model="scope.row.key" disabled="true" v-show="editline != scope.$index"></el-checkbox>
+            <el-checkbox v-model="editableTableStructure.key" v-show="editline == scope.$index"></el-checkbox>
+          </template>
+        </el-table-column>
+        <el-table-column
+          fixed="right"
+          label="操作"
+          width="200">
+          <template slot-scope="scope">
+            <el-button type="warning" size="mini" @click="editTableStructure(scope)" v-show="editline != scope.$index">编辑</el-button>
+            <el-button type="danger" size="mini" @click="deleteNewTableStructure(scope)" v-show="editline != scope.$index">删除字段</el-button>
+            <el-button type="success" size="mini" @click="confirmNewTable(true, scope)" v-show="editline == scope.$index">保存</el-button>
+            <el-button type="danger" size="mini" @click="confirmNewTable(false, scope)" v-show="editline == scope.$index">取消</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-divider></el-divider>
+      <el-button type="success" size="mini" @click="add_table_structure_visible = true">添加字段</el-button>
+      <el-form style="text-align: center;" size="small" border :inline="true" label-position="top" :model="editableTableStructure" v-show="add_table_structure_visible">
+        <el-form-item label="名">
+          <el-input v-model="editableTableStructure.field"></el-input>
+        </el-form-item>
+        <el-form-item label="类型">
+          <el-select v-model="editableTableStructure.type" filterable placeholder="请选择">
+            <el-option
+              v-for="item in typeOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="长度">
+          <el-input type="number" v-model="editableTableStructure.size"></el-input>
+        </el-form-item>
+        <el-form-item label="不是null">
+          <el-checkbox v-model="editableTableStructure.notnull"></el-checkbox>
+        </el-form-item>
+        <el-form-item label="主键">
+          <el-checkbox v-model="editableTableStructure.key"></el-checkbox>
+        </el-form-item>
+        <el-form-item label="操作">
+          <el-button type="success" size="mini" @click="comfirmAddNewTableStructure(true)">确认</el-button>
+          <el-button type="danger" size="mini" @click="comfirmAddNewTableStructure(false)">取消</el-button>
+        </el-form-item>
+      </el-form>
+    </div>
+
+    <div slot="footer" class="dialog-footer">
+      <el-button type="primary" @click="confirmCreateNewTable">确认</el-button>
+      <el-button type="info" @click="closeNewTableDialog">取消</el-button>
+    </div>
   </el-dialog>
   <!-- 修改表对话框-->
   <el-dialog v-loading="modify_table_loading" width="50%" title="修改表" :visible.sync="modify_table_visible" :before-close="closeModifyTableDialog">
@@ -306,6 +412,7 @@
         },
         new_database_visible:false,
         update_database_visible: false,
+        new_table_visible: false,
         modify_table_visible:false,
         add_table_structure_visible: false,
         dbInfo:{
@@ -353,6 +460,7 @@
         new_conn_loading: false,
         new_database_loading: false,
         update_database_loading: false,
+        new_table_loading: false,
         modify_table_loading: false,
         defaultProps: {
           children: 'children',
@@ -709,6 +817,18 @@
           collate:' '
         };
       },
+      // 关闭新建表Dialog前回调
+      closeNewTableDialog(){
+        this.tableStructure = [];
+        this.editableTableStructure = {
+          field:'',
+          type:'',
+          size:255,
+          notnull:false,
+          key:false
+        };
+        this.new_table_visible = false;
+      },
       // 关闭修改表Dialog前回调
       closeModifyTableDialog(){
         this.add_table_structure_visible = false;
@@ -733,9 +853,22 @@
         this.contextMenuVisible = show;
         event.target.click();
       },
+      // 创建数据库/表
       createDatabaseOrTable() {
         this.contextMenuVisible = false;
-        this.new_database_visible = true;
+        if('数据库' == this.menuLabel) {
+          this.new_database_visible = true;
+        } else {
+          this.tableStructure = [];
+          this.editableTableStructure = {
+            field:'',
+            type:'',
+            size:255,
+            notnull:false,
+            key:false
+          };
+          this.new_table_visible = true;
+        }
       },
       // 删除数据库/表
       deleteDatabaseOrTable() {
@@ -916,6 +1049,114 @@
         this.editline = -1;
         this.modify_table_loading = false;
       },
+      confirmNewTable(flag, scope) {
+        this.new_table_loading = true;
+        if(flag) {
+          if(scope.row.field == this.editableTableStructure.field &&
+            scope.row.type == this.editableTableStructure.type &&
+            scope.row.size == this.editableTableStructure.size &&
+            scope.row.notnull == this.editableTableStructure.notnull &&
+            scope.row.key == this.editableTableStructure.key) {
+              // 未修改
+              this.editableTableStructure = {
+                field:'',
+                type:'',
+                size:255,
+                notnull:false,
+                key:false
+              };
+              this.new_table_loading = false;
+              this.$message({
+                message:'未做任何修改！',
+                type:'warning'
+              });
+              this.editline = -1;
+              this.new_table_loading = false;
+            } else if(!this.checkUniqueTableStructure()) {
+            this.$message({
+              message: '此字段名已存在！',
+              type: 'error'
+            })
+            this.new_table_loading = false;
+          } else {
+              this.tableStructure.pop(scope.row);
+              this.tableStructure.push(JSON.parse(JSON.stringify(this.editableTableStructure)));
+              this.new_table_loading = false;
+              this.editline = -1;
+              this.new_table_loading = false;
+            }
+        } else {
+          this.new_table_loading = false;
+          this.editableTableStructure = {
+            field:'',
+            type:'',
+            size:255,
+            notnull:false,
+            key:false
+          };
+          this.editline = -1;
+          this.new_table_loading = false;
+        }
+      },
+      // 提交新建表
+      confirmCreateNewTable() {
+        if(this.tableStructure.length == 0) {
+          this.$message({
+            message: '请添加字段！',
+            type: 'error'
+          })
+        } else {
+           this.$prompt('请输入表名', '创建表', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            inputPattern: /^[a-zA-Z_]{1}[a-zA-Z\d_]*/,
+            inputErrorMessage: '请输入正确的表名',
+          }).then(({ value }) => {
+            let flag = true;
+            for(let item of this.parentNodeData.data.children) {
+              if(item.label == value) {
+                flag = false;
+                break;
+              }
+            }
+            if(flag) {
+
+            } else {
+              this.$message({
+                message: '表名已存在！',
+                type: 'error'
+              })
+            }
+            database.new_table({
+              dataSource: global_varibles.dataSource,
+              dbName : this.parentNodeData.label,
+              tbName : value,
+              engine : 'InnoDB',
+              charset : 'utf8',
+              columns : this.tableStructure
+            }).then(result => {
+              if(result.meta.success) {
+                this.closeNewTableDialog();
+                this.refreshList();
+              } else {
+                this.$message({
+                  message : '创建数据库失败！',
+                  type : 'error'
+                });
+              }
+            }).catch(result => {
+              alert(result);
+            })
+
+          }).catch(() => {
+            this.$message({
+              type: 'info',
+              message: '取消输入'
+            });
+          });
+        }
+
+      },
       // 修改表
       editTableStructure(scope) {
         this.editline = scope.$index;
@@ -955,6 +1196,9 @@
             message: '已取消删除'
           });
         })
+      },
+      deleteNewTableStructure(scope) {
+        this.tableStructure.pop(scope.row);
       },
       // 确认添加字段
       comfirmAddTableStructure(flag) {
@@ -1000,6 +1244,41 @@
           };
         }
 
+      },
+      comfirmAddNewTableStructure(flag) {
+        if(flag) {
+          if(this.editableTableStructure.field == '' || this.editableTableStructure.type == '') {
+            this.$message({
+              message: '请将信息输入完整！',
+              type: 'error'
+            })
+
+          } else if(!this.checkUniqueTableStructure()) {
+            this.$message({
+              message: '此字段名已存在！',
+              type: 'error'
+            })
+          } else {
+            this.tableStructure.push(this.editableTableStructure);
+            this.add_table_structure_visible = false;
+            this.editableTableStructure = {
+              field:'',
+              type:'',
+              size:255,
+              notnull:false,
+              key:false
+            };
+          }
+        } else {
+          this.add_table_structure_visible = false;
+          this.editableTableStructure = {
+            field:'',
+            type:'',
+            size:255,
+            notnull:false,
+            key:false
+          };
+        }
       },
       // 导出数据库/表
       exdbPortDatabaseOrTable() {
@@ -1117,6 +1396,14 @@
         this.$store.commit("setTbName", this.nodeData.label);
         this.$store.commit("setCurrentPage", 1);
         this.$store.commit("setSearchFlag", true);
+      },
+      checkUniqueTableStructure() {
+        for(let item of this.tableStructure) {
+          if(this.editableTableStructure.field == item.field) {
+            return false;
+          }
+        }
+        return true;
       }
     },
     mounted() {

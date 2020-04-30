@@ -36,5 +36,8 @@ export default{
   },
   export_table: params => {
     return API.GET('/database/export_table', params);
+  },
+  new_table: params => {
+    return API.POST('/database/new_table', params);
   }
 }
